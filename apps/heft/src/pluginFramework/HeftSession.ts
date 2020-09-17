@@ -5,31 +5,52 @@ import { SyncHook } from 'tapable';
 
 import { MetricsCollector, MetricsCollectorHooks } from '../metrics/MetricsCollector';
 import { ICleanStageContext } from '../stages/CleanStage';
-import { IDevDeployStageContext } from '../stages/DevDeployStage';
 import { IBuildStageContext } from '../stages/BuildStage';
 import { ITestStageContext } from '../stages/TestStage';
 import { IHeftPlugin } from './IHeftPlugin';
 import { IInternalHeftSessionOptions } from './InternalHeftSession';
+import { ScopedLogger } from './logging/ScopedLogger';
+import { LoggingManager } from './logging/LoggingManager';
+import { ICustomActionOptions } from '../cli/actions/CustomAction';
+
+/** @beta */
+export type RegisterAction = <TParameters>(action: ICustomActionOptions<TParameters>) => void;
 
 /**
  * @public
  */
 export interface IHeftSessionHooks {
+  metricsCollector: MetricsCollectorHooks;
+
   build: SyncHook<IBuildStageContext>;
   clean: SyncHook<ICleanStageContext>;
-  devDeploy: SyncHook<IDevDeployStageContext>;
   test: SyncHook<ITestStageContext>;
-  metricsCollector: MetricsCollectorHooks;
 }
 
 export interface IHeftSessionOptions {
   plugin: IHeftPlugin;
+
+  /**
+   * @beta
+   */
+  requestAccessToPluginByName: RequestAccessToPluginByNameCallback;
 }
+
+/**
+ * @beta
+ */
+export type RequestAccessToPluginByNameCallback = (
+  pluginToAccessName: string,
+  pluginApply: (pluginAccessor: object) => void
+) => void;
 
 /**
  * @public
  */
 export class HeftSession {
+  private readonly _loggingManager: LoggingManager;
+  private readonly _options: IHeftSessionOptions;
+
   public readonly hooks: IHeftSessionHooks;
 
   /**
@@ -42,20 +63,44 @@ export class HeftSession {
    */
   public readonly debugMode: boolean;
 
+  /** @beta */
+  public readonly registerAction: RegisterAction;
+
+  /**
+   * Call this function to receive a callback with the plugin if and after the specified plugin
+   * has been applied. This is used to tap hooks on another plugin.
+   *
+   * @beta
+   */
+  public readonly requestAccessToPluginByName: RequestAccessToPluginByNameCallback;
+
   /**
    * @internal
    */
   public constructor(options: IHeftSessionOptions, internalSessionOptions: IInternalHeftSessionOptions) {
+    this._options = options;
+
+    this._loggingManager = internalSessionOptions.loggingManager;
     this.metricsCollector = internalSessionOptions.metricsCollector;
+    this.registerAction = internalSessionOptions.registerAction;
 
     this.hooks = {
+      metricsCollector: this.metricsCollector.hooks,
+
       build: internalSessionOptions.buildStage.stageInitializationHook,
       clean: internalSessionOptions.cleanStage.stageInitializationHook,
-      devDeploy: internalSessionOptions.devDeployStage.stageInitializationHook,
-      test: internalSessionOptions.testStage.stageInitializationHook,
-      metricsCollector: this.metricsCollector.hooks
+      test: internalSessionOptions.testStage.stageInitializationHook
     };
 
     this.debugMode = internalSessionOptions.getIsDebugMode();
+
+    this.requestAccessToPluginByName = options.requestAccessToPluginByName;
+  }
+
+  /**
+   * Call this function to request a logger with the specified name.
+   */
+  public requestScopedLogger(loggerName: string): ScopedLogger {
+    return this._loggingManager.requestScopedLogger(this._options.plugin, loggerName);
   }
 }

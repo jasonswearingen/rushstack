@@ -14,6 +14,24 @@ export const enum AlreadyExistsBehavior {
     Overwrite = "overwrite"
 }
 
+// @public
+export class AlreadyReportedError extends Error {
+    // (undocumented)
+    static [Symbol.hasInstance](instance: object): boolean;
+    constructor();
+}
+
+// @public
+export class AnsiEscape {
+    static formatForTests(text: string, options?: IAnsiEscapeConvertForTestsOptions): string;
+    static removeCodes(text: string): string;
+    }
+
+// @public
+export type Brand<T, BrandTag extends string> = T & {
+    __brand: BrandTag;
+};
+
 // @beta
 export class Colors {
     // (undocumented)
@@ -190,7 +208,8 @@ export type FileSystemStats = fs.Stats;
 // @public
 export class FileWriter {
     close(): void;
-    static open(path: string, flags?: IFileWriterFlags): FileWriter;
+    readonly filePath: string;
+    static open(filePath: string, flags?: IFileWriterFlags): FileWriter;
     write(text: string): void;
 }
 
@@ -198,6 +217,11 @@ export class FileWriter {
 export const enum FolderConstants {
     Git = ".git",
     NodeModules = "node_modules"
+}
+
+// @public
+export interface IAnsiEscapeConvertForTestsOptions {
+    encodeNewlines?: boolean;
 }
 
 // @beta (undocumented)
@@ -305,6 +329,23 @@ export interface IFileWriterFlags {
 }
 
 // @public
+export interface IImportResolveModuleOptions extends IImportResolveOptions {
+    modulePath: string;
+}
+
+// @public
+export interface IImportResolveOptions {
+    allowSelfReference?: boolean;
+    baseFolderPath: string;
+    includeSystemModules?: boolean;
+}
+
+// @public
+export interface IImportResolvePackageOptions extends IImportResolveOptions {
+    packageName: string;
+}
+
+// @public
 export interface IJsonFileSaveOptions extends IJsonFileStringifyOptions {
     ensureFolderExists?: boolean;
     onlyIfChanged?: boolean;
@@ -331,6 +372,13 @@ export interface IJsonSchemaFromFileOptions {
 // @public
 export interface IJsonSchemaValidateOptions {
     customErrorHeader?: string;
+}
+
+// @public
+export class Import {
+    static lazy(moduleName: string, require: (id: string) => unknown): any;
+    static resolveModule(options: IImportResolveModuleOptions): string;
+    static resolvePackage(options: IImportResolvePackageOptions): string;
 }
 
 // @public
@@ -407,6 +455,11 @@ export interface IProtectableMapParameters<K, V> {
     onSet?: (source: ProtectableMap<K, V>, key: K, value: V) => V;
 }
 
+// @beta (undocumented)
+export interface IStringBufferOutputOptions {
+    normalizeSpecialCharacters: boolean;
+}
+
 // @public
 export interface IStringBuilder {
     append(text: string): void;
@@ -422,6 +475,8 @@ export interface ITerminalProvider {
 
 // @public
 export class JsonFile {
+    // @internal (undocumented)
+    static _formatPathForError: (path: string) => string;
     static load(jsonFilename: string): JsonObject;
     static loadAndValidate(jsonFilename: string, jsonSchema: JsonSchema, options?: IJsonSchemaValidateOptions): JsonObject;
     static loadAndValidateAsync(jsonFilename: string, jsonSchema: JsonSchema, options?: IJsonSchemaValidateOptions): Promise<JsonObject>;
@@ -435,6 +490,9 @@ export class JsonFile {
     static updateString(previousJson: string, newJsonObject: JsonObject, options?: IJsonFileStringifyOptions): string;
     static validateNoUndefinedMembers(jsonObject: JsonObject): void;
     }
+
+// @public
+export type JsonNull = null;
 
 // @public
 export type JsonObject = any;
@@ -497,6 +555,7 @@ export const enum NewlineKind {
 export class PackageJsonLookup {
     constructor(parameters?: IPackageJsonLookupParameters);
     clearCache(): void;
+    static readonly instance: PackageJsonLookup;
     loadNodePackageJson(jsonFilename: string): INodePackageJson;
     static loadOwnPackageJson(dirnameOfCaller: string): IPackageJson;
     loadPackageJson(jsonFilename: string): IPackageJson;
@@ -580,10 +639,10 @@ export class Sort {
 export class StringBufferTerminalProvider implements ITerminalProvider {
     constructor(supportsColor?: boolean);
     readonly eolCharacter: string;
-    getErrorOutput(): string;
-    getOutput(): string;
-    getVerbose(): string;
-    getWarningOutput(): string;
+    getErrorOutput(options?: IStringBufferOutputOptions): string;
+    getOutput(options?: IStringBufferOutputOptions): string;
+    getVerbose(options?: IStringBufferOutputOptions): string;
+    getWarningOutput(options?: IStringBufferOutputOptions): string;
     readonly supportsColor: boolean;
     write(data: string, severity: TerminalProviderSeverity): void;
 }
@@ -628,6 +687,7 @@ export class Text {
     static convertToCrLf(input: string): string;
     static convertToLf(input: string): string;
     static ensureTrailingNewline(s: string, newlineKind?: NewlineKind): string;
+    static getNewline(newlineKind: NewlineKind): string;
     static padEnd(s: string, minimumLength: number, paddingCharacter?: string): string;
     static padStart(s: string, minimumLength: number, paddingCharacter?: string): string;
     static replaceAll(input: string, searchValue: string, replaceValue: string): string;
@@ -649,6 +709,12 @@ export enum TextAttribute {
     // (undocumented)
     Underline = 2
 }
+
+// @public
+export class TypeUuid {
+    static isInstanceOf(targetObject: unknown, typeUuid: string): boolean;
+    static registerClass(targetClass: any, typeUuid: string): void;
+    }
 
 
 ```

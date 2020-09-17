@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-import { LegacyAdapters, FileSystem, Terminal } from '@rushstack/node-core-library';
+import { LegacyAdapters, FileSystem } from '@rushstack/node-core-library';
 import * as glob from 'glob';
 import * as globEscape from 'glob-escape';
 import * as path from 'path';
@@ -12,12 +12,50 @@ import { performance } from 'perf_hooks';
 import { IHeftPlugin } from '../pluginFramework/IHeftPlugin';
 import { HeftSession } from '../pluginFramework/HeftSession';
 import { HeftConfiguration } from '../configuration/HeftConfiguration';
-import { PrefixProxyTerminalProvider } from '../utilities/PrefixProxyTerminalProvider';
-import { ICopyStaticAssetsConfiguration, IBuildStageContext, ICompileSubstage } from '../stages/BuildStage';
+import { IBuildStageContext, ICompileSubstage } from '../stages/BuildStage';
+import { ScopedLogger } from '../pluginFramework/logging/ScopedLogger';
+import { HeftConfigFiles } from '../utilities/HeftConfigFiles';
+
 const PLUGIN_NAME: string = 'CopyStaticAssetsPlugin';
 
+export interface ISharedCopyStaticAssetsConfiguration {
+  /**
+   * File extensions that should be copied from the src folder to the destination folder(s)
+   */
+  fileExtensions?: string[];
+
+  /**
+   * Globs that should be explicitly excluded. This takes precedence over globs listed in "includeGlobs" and
+   * files that match the file extensions provided in "fileExtensions".
+   */
+  excludeGlobs?: string[];
+
+  /**
+   * Globs that should be explicitly included.
+   */
+  includeGlobs?: string[];
+}
+
+export interface ICopyStaticAssetsConfigurationJson extends ISharedCopyStaticAssetsConfiguration {}
+
+interface ICopyStaticAssetsConfiguration extends ISharedCopyStaticAssetsConfiguration {
+  /**
+   * The folder from which assets should be copied. For example, "src". This defaults to "src".
+   *
+   * This folder is directly under the folder containing the project's package.json file
+   */
+  sourceFolderName: string;
+
+  /**
+   * The folder(s) to which assets should be copied. For example ["lib", "lib-cjs"]. This defaults to ["lib"]
+   *
+   * These folders are directly under the folder containing the project's package.json file
+   */
+  destinationFolderNames: string[];
+}
+
 interface ICopyStaticAssetsOptions {
-  terminal: Terminal;
+  logger: ScopedLogger;
   buildFolder: string;
   copyStaticAssetsConfiguration: ICopyStaticAssetsConfiguration;
   watchMode: boolean;
@@ -30,25 +68,49 @@ interface IRunWatchOptions extends ICopyStaticAssetsOptions {
 }
 
 export class CopyStaticAssetsPlugin implements IHeftPlugin {
-  public readonly displayName: string = PLUGIN_NAME;
+  public readonly pluginName: string = PLUGIN_NAME;
 
   public apply(heftSession: HeftSession, heftConfiguration: HeftConfiguration): void {
     heftSession.hooks.build.tap(PLUGIN_NAME, (build: IBuildStageContext) => {
       build.hooks.compile.tap(PLUGIN_NAME, (compile: ICompileSubstage) => {
         compile.hooks.run.tapPromise(PLUGIN_NAME, async () => {
-          const terminal: Terminal = new Terminal(
-            new PrefixProxyTerminalProvider(heftConfiguration.terminalProvider, '[copy-static-assets] ')
-          );
+          const logger: ScopedLogger = heftSession.requestScopedLogger('copy-static-assets');
 
+          const copyStaticAssetsConfiguration: ICopyStaticAssetsConfiguration = await this._loadCopyStaticAssetsConfigurationAsync(
+            heftConfiguration.buildFolder
+          );
           await this._runCopyAsync({
-            terminal,
+            logger,
+            copyStaticAssetsConfiguration,
             buildFolder: heftConfiguration.buildFolder,
-            copyStaticAssetsConfiguration: compile.properties.copyStaticAssetsConfiguration,
             watchMode: build.properties.watchMode
           });
         });
       });
     });
+  }
+
+  private async _loadCopyStaticAssetsConfigurationAsync(
+    buildFolder: string
+  ): Promise<ICopyStaticAssetsConfiguration> {
+    let copyStaticAssetsConfigurationJson: ICopyStaticAssetsConfigurationJson | undefined;
+    try {
+      copyStaticAssetsConfigurationJson = await HeftConfigFiles.copyStaticAssetsConfigurationLoader.loadConfigurationFileAsync(
+        path.resolve(buildFolder, '.heft', 'copy-static-assets.json')
+      );
+    } catch (e) {
+      if (!FileSystem.isNotExistError(e)) {
+        throw e;
+      }
+    }
+
+    return {
+      ...copyStaticAssetsConfigurationJson,
+
+      // For now - these may need to be revised later
+      sourceFolderName: 'src',
+      destinationFolderNames: ['lib']
+    };
   }
 
   private async _expandGlobPatternAsync(
@@ -89,7 +151,7 @@ export class CopyStaticAssetsPlugin implements IHeftPlugin {
   }
 
   private async _runCopyAsync(options: ICopyStaticAssetsOptions): Promise<void> {
-    const { terminal, buildFolder, copyStaticAssetsConfiguration, watchMode } = options;
+    const { logger, buildFolder, copyStaticAssetsConfiguration, watchMode } = options;
 
     if (!copyStaticAssetsConfiguration.sourceFolderName) {
       return;
@@ -140,7 +202,7 @@ export class CopyStaticAssetsPlugin implements IHeftPlugin {
       resolvedDestinationFolderPaths
     );
     const duration: number = performance.now() - startTime;
-    terminal.writeLine(
+    logger.terminal.writeLine(
       `Copied ${copyCount} static asset${copyCount === 1 ? '' : 's'} in ${Math.round(duration)}ms`
     );
 
@@ -156,7 +218,7 @@ export class CopyStaticAssetsPlugin implements IHeftPlugin {
 
   private async _runWatchAsync(options: IRunWatchOptions): Promise<void> {
     const {
-      terminal,
+      logger,
       fileExtensionsGlobPattern,
       resolvedSourceFolderPath,
       resolvedDestinationFolderPaths,
@@ -179,7 +241,7 @@ export class CopyStaticAssetsPlugin implements IHeftPlugin {
           resolvedSourceFolderPath,
           resolvedDestinationFolderPaths
         );
-        terminal.writeLine(`Copied ${copyCount} static asset${copyCount === 1 ? '' : 's'}`);
+        logger.terminal.writeLine(`Copied ${copyCount} static asset${copyCount === 1 ? '' : 's'}`);
       };
 
       watcher.on('add', copyAsset);
@@ -190,7 +252,7 @@ export class CopyStaticAssetsPlugin implements IHeftPlugin {
           FileSystem.deleteFile(path.resolve(resolvedDestinationFolder, assetPath));
           deleteCount++;
         }
-        terminal.writeLine(`Deleted ${deleteCount} static asset${deleteCount === 1 ? '' : 's'}`);
+        logger.terminal.writeLine(`Deleted ${deleteCount} static asset${deleteCount === 1 ? '' : 's'}`);
       });
     }
 

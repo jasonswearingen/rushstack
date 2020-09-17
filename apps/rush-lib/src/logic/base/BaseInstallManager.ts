@@ -5,13 +5,18 @@ import * as colors from 'colors';
 import * as fetch from 'node-fetch';
 import * as fs from 'fs';
 import * as http from 'http';
-import HttpsProxyAgent = require('https-proxy-agent');
 import * as os from 'os';
 import * as path from 'path';
 import * as semver from 'semver';
-import { FileSystem, JsonFile, PosixModeBits, NewlineKind } from '@rushstack/node-core-library';
+import {
+  FileSystem,
+  JsonFile,
+  PosixModeBits,
+  NewlineKind,
+  AlreadyReportedError,
+  Import
+} from '@rushstack/node-core-library';
 
-import { AlreadyReportedError } from '../../utilities/AlreadyReportedError';
 import { ApprovedPackagesChecker } from '../ApprovedPackagesChecker';
 import { AsyncRecycler } from '../../utilities/AsyncRecycler';
 import { BaseShrinkwrapFile } from '../base/BaseShrinkwrapFile';
@@ -30,6 +35,8 @@ import { Utilities } from '../../utilities/Utilities';
 import { InstallHelpers } from '../installManager/InstallHelpers';
 import { PolicyValidator } from '../policy/PolicyValidator';
 import { RushConfigurationProject } from '../../api/RushConfigurationProject';
+
+const HttpsProxyAgent: typeof import('https-proxy-agent') = Import.lazy('https-proxy-agent', require);
 
 export interface IInstallManagerOptions {
   /**
@@ -349,7 +356,7 @@ export abstract class BaseInstallManager {
     // This will be used by bulk scripts to determine the correct Shrinkwrap file to track.
     const currentVariantJsonFilename: string = this._rushConfiguration.currentVariantJsonFilename;
     const currentVariantJson: ICurrentVariantJson = {
-      variant: this.options.variant || null // eslint-disable-line @rushstack/no-null
+      variant: this.options.variant || null
     };
 
     // Determine if the variant is already current by updating current-variant.json.
@@ -475,7 +482,11 @@ export abstract class BaseInstallManager {
       // we theoretically could use the lock file, but we would need to clean the store if the
       // lockfile existed, otherwise PNPM would hang indefinitely. it is simpler to rely on Rush's
       // last install flag, which encapsulates the entire installation
-      args.push('--no-lock');
+
+      // This setting was removed in 5.0.0. See https://github.com/pnpm/pnpm/releases/tag/v5.0.0
+      if (semver.lt(this._rushConfiguration.packageManagerToolVersion, '5.0.0')) {
+        args.push('--no-lock');
+      }
 
       if (
         this._rushConfiguration.experimentsConfiguration.configuration.usePnpmFrozenLockfileForRushInstall &&

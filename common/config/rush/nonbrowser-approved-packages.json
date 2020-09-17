@@ -11,6 +11,10 @@
       "allowedCategories": [ "libraries" ]
     },
     {
+      "name": "@jest/transform",
+      "allowedCategories": [ "libraries" ]
+    },
+    {
       "name": "@jest/types",
       "allowedCategories": [ "libraries" ]
     },
@@ -175,6 +179,10 @@
       "allowedCategories": [ "libraries", "tests" ]
     },
     {
+      "name": "@rushstack/heft-config-file",
+      "allowedCategories": [ "libraries" ]
+    },
+    {
       "name": "@rushstack/localization-plugin",
       "allowedCategories": [ "tests" ]
     },
@@ -191,11 +199,19 @@
       "allowedCategories": [ "libraries" ]
     },
     {
+      "name": "@rushstack/pre-compile-hardlink-or-copy-plugin",
+      "allowedCategories": [ "libraries" ]
+    },
+    {
       "name": "@rushstack/set-webpack-public-path-plugin",
       "allowedCategories": [ "libraries", "tests" ]
     },
     {
       "name": "@rushstack/stream-collator",
+      "allowedCategories": [ "libraries" ]
+    },
+    {
+      "name": "@rushstack/terminal",
       "allowedCategories": [ "libraries" ]
     },
     {
@@ -283,6 +299,10 @@
       "allowedCategories": [ "libraries", "tests" ]
     },
     {
+      "name": "css-loader",
+      "allowedCategories": [ "tests" ]
+    },
+    {
       "name": "deasync",
       "allowedCategories": [ "libraries" ]
     },
@@ -331,16 +351,16 @@
       "allowedCategories": [ "libraries" ]
     },
     {
+      "name": "file-loader",
+      "allowedCategories": [ "tests" ]
+    },
+    {
       "name": "fs-extra",
       "allowedCategories": [ "libraries", "tests" ]
     },
     {
       "name": "fsevents",
       "allowedCategories": [ "libraries" ]
-    },
-    {
-      "name": "file-loader",
-      "allowedCategories": [ "tests" ]
     },
     {
       "name": "git-repo-info",
@@ -439,6 +459,18 @@
       "allowedCategories": [ "libraries" ]
     },
     {
+      "name": "heft-action-plugin",
+      "allowedCategories": [ "tests" ]
+    },
+    {
+      "name": "heft-example-plugin-01",
+      "allowedCategories": [ "tests" ]
+    },
+    {
+      "name": "heft-example-plugin-02",
+      "allowedCategories": [ "tests" ]
+    },
+    {
       "name": "heft-minimal-rig-test",
       "allowedCategories": [ "tests" ]
     },
@@ -500,6 +532,10 @@
     },
     {
       "name": "jsdom",
+      "allowedCategories": [ "libraries" ]
+    },
+    {
+      "name": "jsonpath-plus",
       "allowedCategories": [ "libraries" ]
     },
     {
@@ -583,6 +619,10 @@
       "allowedCategories": [ "libraries" ]
     },
     {
+      "name": "prettier",
+      "allowedCategories": [ "libraries" ]
+    },
+    {
       "name": "pretty-hrtime",
       "allowedCategories": [ "libraries" ]
     },
@@ -615,8 +655,20 @@
       "allowedCategories": [ "libraries" ]
     },
     {
+      "name": "ssri",
+      "allowedCategories": [ "libraries" ]
+    },
+    {
       "name": "strict-uri-encode",
       "allowedCategories": [ "libraries" ]
+    },
+    {
+      "name": "string-argv",
+      "allowedCategories": [ "libraries" ]
+    },
+    {
+      "name": "style-loader",
+      "allowedCategories": [ "tests" ]
     },
     {
       "name": "sudo",
@@ -624,7 +676,7 @@
     },
     {
       "name": "tapable",
-      "allowedCategories": [ "libraries" ]
+      "allowedCategories": [ "libraries", "tests" ]
     },
     {
       "name": "tar",

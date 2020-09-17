@@ -93,6 +93,7 @@ export const enum EnvironmentVariableNames {
     RUSH_ABSOLUTE_SYMLINKS = "RUSH_ABSOLUTE_SYMLINKS",
     RUSH_ALLOW_UNSUPPORTED_NODEJS = "RUSH_ALLOW_UNSUPPORTED_NODEJS",
     RUSH_DEPLOY_TARGET_FOLDER = "RUSH_DEPLOY_TARGET_FOLDER",
+    RUSH_GLOBAL_FOLDER = "RUSH_GLOBAL_FOLDER",
     RUSH_PARALLELISM = "RUSH_PARALLELISM",
     RUSH_PNPM_STORE_PATH = "RUSH_PNPM_STORE_PATH",
     RUSH_PREVIEW_VERSION = "RUSH_PREVIEW_VERSION",
@@ -315,7 +316,7 @@ export class Rush {
     static launch(launcherVersion: string, arg: ILaunchOptions): void;
     static launchRushX(launcherVersion: string, options: ILaunchOptions): void;
     static readonly version: string;
-}
+    }
 
 // @public
 export class RushConfiguration {
@@ -375,6 +376,8 @@ export class RushConfiguration {
     readonly repositoryDefaultFullyQualifiedRemoteBranch: string;
     readonly repositoryDefaultRemote: string;
     readonly repositoryUrl: string | undefined;
+    // @internal
+    readonly rushConfigurationJson: IRushConfigurationJson;
     readonly rushJsonFile: string;
     readonly rushJsonFolder: string;
     // @deprecated

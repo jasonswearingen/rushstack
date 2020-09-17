@@ -1,6 +1,66 @@
 # Change Log - @rushstack/node-core-library
 
-This log was last generated on Wed, 05 Aug 2020 18:27:32 GMT and should not be manually modified.
+This log was last generated on Fri, 11 Sep 2020 02:13:35 GMT and should not be manually modified.
+
+## 3.32.0
+Fri, 11 Sep 2020 02:13:35 GMT
+
+### Minor changes
+
+- Add Text.getNewline() and FileWriter.filePath
+- Add Brand API
+
+## 3.31.0
+Mon, 07 Sep 2020 07:37:37 GMT
+
+### Minor changes
+
+- Replace Colors.normalizeColorTokensForTest() (which was marked as "beta") with AnsiEscape.formatForTests()
+
+## 3.30.0
+Thu, 27 Aug 2020 11:27:06 GMT
+
+### Minor changes
+
+- Include an API for resolving packages and modules.
+
+## 3.29.1
+Mon, 24 Aug 2020 07:35:20 GMT
+
+*Version update only*
+
+## 3.29.0
+Sat, 22 Aug 2020 05:55:42 GMT
+
+### Minor changes
+
+- Introduce a "JsonNull" type for describing legacy JSON structures without triggering the "@rushstack/no-new-null" lint rule
+
+## 3.28.0
+Tue, 18 Aug 2020 23:59:42 GMT
+
+### Minor changes
+
+- Add a utility function for making console color codes human-readable.
+- Create a lighter weight function to get own package version.
+
+### Patches
+
+- Lazy-import some packages to improve spin up times.
+
+## 3.27.0
+Mon, 17 Aug 2020 04:53:23 GMT
+
+### Minor changes
+
+- Add new APIs AlreadyReportedError and TypeUuid
+
+## 3.26.2
+Wed, 12 Aug 2020 00:10:05 GMT
+
+### Patches
+
+- Updated project to build with Heft
 
 ## 3.26.1
 Wed, 05 Aug 2020 18:27:32 GMT

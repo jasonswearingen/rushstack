@@ -105,7 +105,7 @@ export function rehydrateAsset(asset: IAssetInfo, moduleMap: IModuleMap, banner:
     const enoughCommas: string = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
 
     const useConcatAtStart: boolean = useConcat && minId > 8;
-    lastId = useConcat ? minId : 0;
+    lastId = useConcatAtStart ? minId : 0;
     // TODO: Just because we want to use concat elsewhere doesn't mean its optimal to use at the start
     let separator: string = useConcatAtStart ? `Array(${minId}).concat([` : '[';
     let concatInserted: boolean = useConcatAtStart;
@@ -147,7 +147,7 @@ export function rehydrateAsset(asset: IAssetInfo, moduleMap: IModuleMap, banner:
     const externalIdRegex: RegExp = /__WEBPACK_EXTERNAL_MODULE_[A-Za-z0-9_$]+/g;
 
     // RegExp.exec uses null or an array as the return type, explicitly
-    let match: RegExpExecArray | null = null; // eslint-disable-line @rushstack/no-null
+    let match: RegExpExecArray | null = null;
     while ((match = externalIdRegex.exec(code))) {
       const id: string = match[0];
       const mapped: string | undefined = externalNames.get(id);

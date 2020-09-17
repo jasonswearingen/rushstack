@@ -41,8 +41,6 @@ export class BundleSubstageHooks extends BuildSubstageHooksBase {
     // (undocumented)
     readonly afterConfigureWebpack: AsyncSeriesHook;
     // (undocumented)
-    readonly configureApiExtractor: AsyncSeriesWaterfallHook<IApiExtractorConfiguration>;
-    // (undocumented)
     readonly configureWebpack: AsyncSeriesWaterfallHook<IWebpackConfiguration>;
 }
 
@@ -54,34 +52,27 @@ export class CleanStageHooks extends StageHooksBase<ICleanStageProperties> {
 
 // @public (undocumented)
 export class CompileSubstageHooks extends BuildSubstageHooksBase {
-    // (undocumented)
-    readonly afterConfigureCopyStaticAssets: AsyncSeriesHook;
-    // (undocumented)
-    readonly afterConfigureTypeScript: AsyncSeriesHook;
-    // (undocumented)
-    readonly configureCopyStaticAssets: AsyncSeriesHook;
-    // (undocumented)
-    readonly configureTypeScript: AsyncSeriesHook;
+    // @internal (undocumented)
+    readonly afterTypescriptFirstEmit: AsyncParallelHook;
 }
 
 // @public (undocumented)
 export type CopyFromCacheMode = 'hardlink' | 'copy';
 
-// @public (undocumented)
-export class DevDeployStageHooks extends StageHooksBase<IDevDeployStageProperties> {
-}
+// @beta (undocumented)
+export type CustomActionParameterType = string | boolean | number | ReadonlyArray<string> | undefined;
 
 // @public (undocumented)
 export class HeftConfiguration {
     get buildCacheFolder(): string;
     get buildFolder(): string;
     get compilerPackage(): ICompilerPackage | undefined;
+    get globalTerminal(): Terminal;
     get heftPackageJson(): IPackageJson;
     // @internal (undocumented)
     static initialize(options: _IHeftConfigurationInitializationOptions): HeftConfiguration;
     get projectHeftDataFolder(): string;
     get projectPackageJson(): IPackageJson;
-    get terminal(): Terminal;
     get terminalProvider(): ITerminalProvider;
     }
 
@@ -97,11 +88,11 @@ export class HeftSession {
     readonly hooks: IHeftSessionHooks;
     // @internal (undocumented)
     readonly metricsCollector: _MetricsCollector;
-}
-
-// @public (undocumented)
-export interface IApiExtractorConfiguration {
-    useProjectTypescriptVersion?: boolean;
+    // @beta (undocumented)
+    readonly registerAction: RegisterAction;
+    // @beta
+    readonly requestAccessToPluginByName: RequestAccessToPluginByNameCallback;
+    requestScopedLogger(loggerName: string): ScopedLogger;
 }
 
 // @public (undocumented)
@@ -139,7 +130,7 @@ export interface IBundleSubstage extends IBuildSubstage<BundleSubstageHooks, IBu
 }
 
 // @public (undocumented)
-export interface IBundleSubstageProperties extends ISharedBundleSubstageWebpackProperties {
+export interface IBundleSubstageProperties {
     webpackConfiguration?: webpack.Configuration | webpack.Configuration[];
 }
 
@@ -174,34 +165,60 @@ export interface ICompileSubstage extends IBuildSubstage<CompileSubstageHooks, I
 // @public (undocumented)
 export interface ICompileSubstageProperties {
     // (undocumented)
-    copyStaticAssetsConfiguration: ICopyStaticAssetsConfiguration;
+    typescriptMaxWriteParallelism: number | undefined;
+}
+
+// @beta (undocumented)
+export interface ICustomActionOptions<TParameters> {
     // (undocumented)
-    typeScriptConfiguration: ITypeScriptConfiguration;
-}
-
-// @public (undocumented)
-export interface ICopyStaticAssetsConfiguration extends ISharedCopyStaticAssetsConfiguration {
-    destinationFolderNames: string[];
-    sourceFolderName: string;
-}
-
-// @public (undocumented)
-export interface IDevDeployStageContext extends IStageContext<DevDeployStageHooks, IDevDeployStageProperties> {
-}
-
-// @public (undocumented)
-export interface IDevDeployStageProperties {
-}
-
-// @public (undocumented)
-export type IEmitModuleKind = IEmitModuleKindBase<'commonjs' | 'amd' | 'umd' | 'system' | 'es2015' | 'esnext'>;
-
-// @public (undocumented)
-export interface IEmitModuleKindBase<TModuleKind> {
+    actionName: string;
     // (undocumented)
-    moduleKind: TModuleKind;
+    callback: (parameters: TParameters) => void | Promise<void>;
     // (undocumented)
-    outFolderPath: string;
+    documentation: string;
+    // (undocumented)
+    parameters?: {
+        [K in keyof TParameters]: ICustomActionParameter<TParameters[K]>;
+    };
+    // (undocumented)
+    summary?: string;
+}
+
+// @beta (undocumented)
+export type ICustomActionParameter<TParameter> = TParameter extends boolean ? ICustomActionParameterFlag : TParameter extends number ? ICustomActionParameterInteger : TParameter extends string ? ICustomActionParameterString : TParameter extends ReadonlyArray<string> ? ICustomActionParameterStringList : never;
+
+// @beta (undocumented)
+export interface ICustomActionParameterBase<TParameter extends CustomActionParameterType> {
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    kind: 'flag' | 'integer' | 'string' | 'stringList';
+    // (undocumented)
+    paramterLongName: string;
+}
+
+// @beta (undocumented)
+export interface ICustomActionParameterFlag extends ICustomActionParameterBase<boolean> {
+    // (undocumented)
+    kind: 'flag';
+}
+
+// @beta (undocumented)
+export interface ICustomActionParameterInteger extends ICustomActionParameterBase<number> {
+    // (undocumented)
+    kind: 'integer';
+}
+
+// @beta (undocumented)
+export interface ICustomActionParameterString extends ICustomActionParameterBase<string> {
+    // (undocumented)
+    kind: 'string';
+}
+
+// @beta (undocumented)
+export interface ICustomActionParameterStringList extends ICustomActionParameterBase<ReadonlyArray<string>> {
+    // (undocumented)
+    kind: 'stringList';
 }
 
 // @public
@@ -222,9 +239,11 @@ export interface _IHeftConfigurationInitializationOptions {
 // @public (undocumented)
 export interface IHeftPlugin<TOptions = void> {
     // (undocumented)
-    apply: (heftSession: HeftSession, heftConfiguration: HeftConfiguration, options?: TOptions) => void;
+    readonly accessor?: object;
     // (undocumented)
-    displayName: string;
+    apply(heftSession: HeftSession, heftConfiguration: HeftConfiguration, options?: TOptions): void;
+    // (undocumented)
+    readonly pluginName: string;
 }
 
 // @public (undocumented)
@@ -233,8 +252,6 @@ export interface IHeftSessionHooks {
     build: SyncHook<IBuildStageContext>;
     // (undocumented)
     clean: SyncHook<ICleanStageContext>;
-    // (undocumented)
-    devDeploy: SyncHook<IDevDeployStageContext>;
     // (undocumented)
     metricsCollector: MetricsCollectorHooks;
     // (undocumented)
@@ -267,24 +284,11 @@ export interface IPreCompileSubstage extends IBuildSubstage<BuildSubstageHooksBa
 }
 
 // @public (undocumented)
-export interface ISharedBundleSubstageWebpackProperties {
+export interface IScopedLogger {
+    emitError(error: Error): void;
+    emitWarning(warning: Error): void;
     // (undocumented)
-    apiExtractorConfiguration: IApiExtractorConfiguration;
-}
-
-// @public (undocumented)
-export interface ISharedCopyStaticAssetsConfiguration {
-    excludeGlobs?: string[];
-    fileExtensions?: string[];
-    includeGlobs?: string[];
-}
-
-// @public (undocumented)
-export interface ISharedTypeScriptConfiguration {
-    additionalModuleKindsToEmit?: IEmitModuleKind[] | undefined;
-    copyFromCacheMode?: CopyFromCacheMode | undefined;
-    emitFolderPathForJest?: string;
-    maxWriteParallelism: number;
+    readonly terminal: Terminal;
 }
 
 // @public (undocumented)
@@ -302,17 +306,23 @@ export interface ITestStageContext extends IStageContext<TestStageHooks, ITestSt
 // @public (undocumented)
 export interface ITestStageProperties {
     // (undocumented)
-    production: boolean;
+    debugHeftReporter: boolean | undefined;
+    // (undocumented)
+    findRelatedTests: ReadonlyArray<string> | undefined;
+    // (undocumented)
+    maxWorkers: string | undefined;
+    // (undocumented)
+    silent: boolean | undefined;
+    // (undocumented)
+    testNamePattern: string | undefined;
+    // (undocumented)
+    testPathPattern: ReadonlyArray<string> | undefined;
+    // (undocumented)
+    testTimeout: number | undefined;
+    // (undocumented)
+    updateSnapshots: boolean;
     // (undocumented)
     watchMode: boolean;
-}
-
-// @public (undocumented)
-export interface ITypeScriptConfiguration extends ISharedTypeScriptConfiguration {
-    // (undocumented)
-    isLintingEnabled: boolean | undefined;
-    // (undocumented)
-    tsconfigPaths: string[];
 }
 
 // @public (undocumented)
@@ -334,6 +344,34 @@ export class MetricsCollectorHooks {
     flushAndTeardown: AsyncParallelHook;
     recordMetric: SyncHook<string, IMetricsData>;
 }
+
+// @beta (undocumented)
+export type RegisterAction = <TParameters>(action: ICustomActionOptions<TParameters>) => void;
+
+// @beta (undocumented)
+export type RequestAccessToPluginByNameCallback = (pluginToAccessName: string, pluginApply: (pluginAccessor: object) => void) => void;
+
+// @public (undocumented)
+export class ScopedLogger implements IScopedLogger {
+    // Warning: (ae-forgotten-export) The symbol "IScopedLoggerOptions" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    constructor(options: IScopedLoggerOptions);
+    emitError(error: Error): void;
+    emitWarning(warning: Error): void;
+    // (undocumented)
+    get errors(): ReadonlyArray<Error>;
+    // (undocumented)
+    readonly loggerName: string;
+    // @internal (undocumented)
+    readonly _requestingPlugin: IHeftPlugin;
+    // (undocumented)
+    readonly terminal: Terminal;
+    // (undocumented)
+    readonly terminalProvider: ITerminalProvider;
+    // (undocumented)
+    get warnings(): ReadonlyArray<Error>;
+    }
 
 // @public (undocumented)
 export abstract class StageHooksBase<TStageProperties extends object> {

@@ -9,13 +9,29 @@ export {
   ICompilerPackage,
   IHeftConfigurationInitializationOptions as _IHeftConfigurationInitializationOptions
 } from './configuration/HeftConfiguration';
-export { HeftSession, IHeftSessionHooks } from './pluginFramework/HeftSession';
+export {
+  HeftSession,
+  IHeftSessionHooks,
+  RequestAccessToPluginByNameCallback,
+  RegisterAction
+} from './pluginFramework/HeftSession';
 export {
   MetricsCollectorHooks,
   IMetricsData,
   IPerformanceData as _IPerformanceData,
   MetricsCollector as _MetricsCollector
 } from './metrics/MetricsCollector';
+export { ScopedLogger, IScopedLogger } from './pluginFramework/logging/ScopedLogger';
+export {
+  CustomActionParameterType,
+  ICustomActionOptions,
+  ICustomActionParameter,
+  ICustomActionParameterBase,
+  ICustomActionParameterFlag,
+  ICustomActionParameterInteger,
+  ICustomActionParameterString,
+  ICustomActionParameterStringList
+} from './cli/actions/CustomAction';
 
 // Stages
 export { StageHooksBase, IStageContext } from './stages/StageBase';
@@ -25,7 +41,6 @@ export {
   BundleSubstageHooks,
   CompileSubstageHooks,
   CopyFromCacheMode,
-  IApiExtractorConfiguration,
   IBuildStageContext,
   IBuildStageProperties,
   IBuildSubstage,
@@ -33,21 +48,9 @@ export {
   IBundleSubstageProperties,
   ICompileSubstage,
   ICompileSubstageProperties,
-  ICopyStaticAssetsConfiguration,
-  IEmitModuleKind,
-  IEmitModuleKindBase,
   IPostBuildSubstage,
   IPreCompileSubstage,
-  ISharedBundleSubstageWebpackProperties,
-  ISharedCopyStaticAssetsConfiguration,
-  ISharedTypeScriptConfiguration,
-  ITypeScriptConfiguration,
   IWebpackConfiguration
 } from './stages/BuildStage';
 export { ICleanStageProperties, CleanStageHooks, ICleanStageContext } from './stages/CleanStage';
-export {
-  IDevDeployStageProperties,
-  DevDeployStageHooks,
-  IDevDeployStageContext
-} from './stages/DevDeployStage';
 export { ITestStageProperties, TestStageHooks, ITestStageContext } from './stages/TestStage';

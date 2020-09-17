@@ -198,7 +198,10 @@ export class LocalizationPlugin implements Webpack.Plugin {
 
     if (isWebpackDevServer) {
       if (typingsPreprocessor) {
-        compiler.hooks.afterEnvironment.tap(PLUGIN_NAME, () => typingsPreprocessor!.runWatcher());
+        compiler.hooks.afterEnvironment.tapPromise(
+          PLUGIN_NAME,
+          async () => await typingsPreprocessor!.runWatcherAsync()
+        );
 
         if (!compiler.options.plugins) {
           compiler.options.plugins = [];
@@ -214,7 +217,10 @@ export class LocalizationPlugin implements Webpack.Plugin {
       );
     } else {
       if (typingsPreprocessor) {
-        compiler.hooks.beforeRun.tap(PLUGIN_NAME, () => typingsPreprocessor!.generateTypings());
+        compiler.hooks.beforeRun.tapPromise(
+          PLUGIN_NAME,
+          async () => await typingsPreprocessor!.generateTypingsAsync()
+        );
       }
 
       WebpackConfigurationUpdater.amendWebpackConfigurationForMultiLocale(webpackConfigurationUpdaterOptions);
@@ -315,6 +321,7 @@ export class LocalizationPlugin implements Webpack.Plugin {
           };
 
           const alreadyProcessedAssets: Set<string> = new Set<string>();
+          const hotUpdateRegex: RegExp = /\.hot-update\.js$/;
 
           for (const untypedChunk of compilation.chunks) {
             const chunk: ILocalizedWebpackChunk = untypedChunk;
@@ -324,6 +331,7 @@ export class LocalizationPlugin implements Webpack.Plugin {
               for (const chunkFilename of chunk.files) {
                 if (
                   chunkFilename.endsWith('.js') && // Ensure this is a JS file
+                  !hotUpdateRegex.test(chunkFilename) && // Ensure this is not a webpack hot update
                   !alreadyProcessedAssets.has(chunkFilename) // Ensure this isn't a vendor chunk we've already processed
                 ) {
                   if (alreadyProcessedAFileInThisChunk) {

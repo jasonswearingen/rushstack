@@ -1,6 +1,62 @@
 # Change Log - @microsoft/api-extractor-model
 
-This log was last generated on Wed, 05 Aug 2020 18:27:33 GMT and should not be manually modified.
+This log was last generated on Sun, 13 Sep 2020 01:53:20 GMT and should not be manually modified.
+
+## 7.9.0
+Sun, 13 Sep 2020 01:53:20 GMT
+
+### Minor changes
+
+- Add support for system selectors in declaration references
+
+## 7.8.22
+Fri, 11 Sep 2020 02:13:35 GMT
+
+*Version update only*
+
+## 7.8.21
+Mon, 07 Sep 2020 07:37:37 GMT
+
+*Version update only*
+
+## 7.8.20
+Sat, 05 Sep 2020 18:56:34 GMT
+
+### Patches
+
+- Fix "Converting circular structure to JSON" error (GitHub #2152)
+
+## 7.8.19
+Thu, 27 Aug 2020 11:27:06 GMT
+
+*Version update only*
+
+## 7.8.18
+Mon, 24 Aug 2020 07:35:20 GMT
+
+*Version update only*
+
+## 7.8.17
+Sat, 22 Aug 2020 05:55:43 GMT
+
+*Version update only*
+
+## 7.8.16
+Tue, 18 Aug 2020 23:59:42 GMT
+
+*Version update only*
+
+## 7.8.15
+Mon, 17 Aug 2020 04:53:23 GMT
+
+*Version update only*
+
+## 7.8.14
+Wed, 12 Aug 2020 00:10:05 GMT
+
+### Patches
+
+- Updated project to build with Heft
 
 ## 7.8.13
 Wed, 05 Aug 2020 18:27:33 GMT
